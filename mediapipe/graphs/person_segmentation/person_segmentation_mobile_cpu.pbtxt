@@ -41,8 +41,8 @@ node: {
   output_stream: "IMAGE_GPU:transformed_input_video"
   node_options: {
     [type.googleapis.com/mediapipe.ImageTransformationCalculatorOptions] {
-      output_width: 512
-      output_height: 512
+      output_width: 160
+      output_height: 256
     }
   }
 }
@@ -65,12 +65,12 @@ node {
 
 # Embeds the hair mask generated from the previous round of hair segmentation
 # as the alpha channel of the current input image.
-node {
-  calculator: "SetAlphaCalculator"
-  input_stream: "IMAGE_GPU:transformed_input_video"
-  input_stream: "ALPHA_GPU:previous_hair_mask"
-  output_stream: "IMAGE_GPU:mask_embedded_input_video"
-}
+# node {
+#   calculator: "SetAlphaCalculator"
+#   input_stream: "IMAGE_GPU:transformed_input_video"
+#   input_stream: "ALPHA_GPU:previous_hair_mask"
+#   output_stream: "IMAGE_GPU:mask_embedded_input_video"
+# }
 
 # Converts the transformed input image on GPU into an image tensor stored in
 # tflite::gpu::GlBuffer. The zero_center option is set to false to normalize the
@@ -79,12 +79,14 @@ node {
 # image tensor.
 node {
   calculator: "TfLiteConverterCalculator"
-  input_stream: "IMAGE_GPU:mask_embedded_input_video"
+  # input_stream: "IMAGE_GPU:mask_embedded_input_video"
+  input_stream: "IMAGE_GPU:transformed_input_video"
   output_stream: "TENSORS_GPU:image_tensor"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteConverterCalculatorOptions] {
       zero_center: false
-      max_num_channels: 4
+      # max_num_channels: 4
+      max_num_channels: 3
     }
   }
 }
@@ -111,7 +113,8 @@ node {
   input_side_packet: "CUSTOM_OP_RESOLVER:op_resolver"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteInferenceCalculatorOptions] {
-      model_path: "mediapipe/models/hair_segmentation.tflite"
+      model_path: "mediapipe/models/BiSeNetV2.tflite"
+      
       use_gpu: true
     }
   }
@@ -128,8 +131,8 @@ node {
   output_stream: "MASK_GPU:hair_mask"
   node_options: {
     [type.googleapis.com/mediapipe.TfLiteTensorsToSegmentationCalculatorOptions] {
-      tensor_width: 512
-      tensor_height: 512
+      tensor_width: 160
+      tensor_height: 256
       tensor_channels: 2
       combine_with_previous_ratio: 0.9
       output_layer_index: 1

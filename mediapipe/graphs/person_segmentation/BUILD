@@ -55,7 +55,7 @@ cc_library(
 
 mediapipe_binary_graph(
     name = "mobile_gpu_binary_graph",
-    graph = "hair_segmentation_mobile_gpu.pbtxt",
+    graph = "person_segmentation_mobile_cpu.pbtxt",
     output_name = "mobile_gpu.binarypb",
     deps = [":mobile_calculators"],
 )
